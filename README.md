@@ -78,8 +78,11 @@ In this solution, MCP is responsible for rendering rich interactive HTML dashboa
    - MCP endpoint rejects unauthenticated requests
    - MCP endpoint succeeds with auth
 
-![Agent prerequisite view](./assets/screenshots/step-01-copilot-agent-prereq.png)
-![Health endpoint validation](./assets/screenshots/step-02-healthz-endpoint.png)
+<p align="center"><img src="./assets/screenshots/step-01-copilot-agent-prereq.png" alt="Agent prerequisite view" width="1200"></p>
+<p align="center"><sub>Step 1: Copilot agent prerequisite view</sub></p>
+
+<p align="center"><img src="./assets/screenshots/step-02-healthz-endpoint.png" alt="Health endpoint validation" width="1200"></p>
+<p align="center"><sub>Step 2: MCP health endpoint validation</sub></p>
 
 ---
 
@@ -90,9 +93,14 @@ In this solution, MCP is responsible for rendering rich interactive HTML dashboa
 3. Add MCP URL + auth header/API key.
 4. Save and verify the tool appears in the tool list.
 
-![Add tool dialog](./assets/screenshots/step-03-add-tool-dialog.png)
-![MCP server configuration](./assets/screenshots/step-03-add-mcp-server-form.png)
-![Tool added to agent](./assets/screenshots/step-03-tool-added-in-tools-list.png)
+<p align="center"><img src="./assets/screenshots/step-03-add-tool-dialog.png" alt="Add tool dialog" width="1200"></p>
+<p align="center"><sub>Step 3a: Add tool dialog</sub></p>
+
+<p align="center"><img src="./assets/screenshots/step-03-add-mcp-server-form.png" alt="MCP server configuration" width="1200"></p>
+<p align="center"><sub>Step 3b: MCP server configuration</sub></p>
+
+<p align="center"><img src="./assets/screenshots/step-03-tool-added-in-tools-list.png" alt="Tool added to agent" width="1200"></p>
+<p align="center"><sub>Step 3c: Tool added to the agent</sub></p>
 
 ---
 
@@ -105,9 +113,14 @@ Configure the agent so it:
 - explains source coverage clearly
 - falls back to concise summary when no records exist in selected window
 
-![Instruction update for time-window dashboard behavior](./assets/screenshots/step-11-instructions-time-window-dashboard.png)
-![Instructions saved](./assets/screenshots/step-12-saved-instructions.png)
-![Rendered dashboard in preview](./assets/screenshots/step-13-preview-dashboard-rendered.png)
+<p align="center"><img src="./assets/screenshots/step-11-instructions-time-window-dashboard.png" alt="Instruction update for time-window dashboard behavior" width="1200"></p>
+<p align="center"><sub>Step 11: Instruction update for time-window dashboard behavior</sub></p>
+
+<p align="center"><img src="./assets/screenshots/step-12-saved-instructions.png" alt="Instructions saved" width="1200"></p>
+<p align="center"><sub>Step 12: Instructions saved</sub></p>
+
+<p align="center"><img src="./assets/screenshots/step-13-preview-dashboard-rendered.png" alt="Rendered dashboard in preview" width="1200"></p>
+<p align="center"><sub>Step 13: Dashboard rendered in preview</sub></p>
 
 ---
 
@@ -137,9 +150,14 @@ Planner sync is for operational tracking (ownership and tasking), not for replac
 2. Build a recurring workflow.
 3. Validate run results and Planner task creation.
 
-![Planner sync tool added](./assets/screenshots/step-17-sync-messages-to-planner-tool-added.png)
-![Planner sync workflow created](./assets/screenshots/step-18-daily-message-center-to-planner-flow-built.png)
-![Published workflow status](./assets/screenshots/step-20-flow-published-status.png)
+<p align="center"><img src="./assets/screenshots/step-17-sync-messages-to-planner-tool-added.png" alt="Planner sync tool added" width="1200"></p>
+<p align="center"><sub>Step 17: Planner sync tool added</sub></p>
+
+<p align="center"><img src="./assets/screenshots/step-18-daily-message-center-to-planner-flow-built.png" alt="Planner sync workflow created" width="1200"></p>
+<p align="center"><sub>Step 18: Planner sync workflow created</sub></p>
+
+<p align="center"><img src="./assets/screenshots/step-20-flow-published-status.png" alt="Published workflow status" width="1200"></p>
+<p align="center"><sub>Step 20: Workflow published status</sub></p>
 
 ---
 
@@ -153,7 +171,8 @@ Create a workflow that runs daily and writes normalized rows into Dataverse:
 4. If title is not empty, insert/update Dataverse row
 5. Save and publish
 
-![RSS to Dataverse flow canvas](./assets/screenshots/step-22-rss-to-dataverse-flow-canvas.png)
+<p align="center"><img src="./assets/screenshots/step-22-rss-to-dataverse-flow-canvas.png" alt="RSS to Dataverse flow canvas" width="1200"></p>
+<p align="center"><sub>Step 22: RSS to Dataverse flow canvas</sub></p>
 
 ---
 
@@ -168,8 +187,11 @@ Create a workflow that runs daily and writes normalized rows into Dataverse:
 | Data lineage | Check Dataverse rows | IDs/source/status/links are populated |
 | Planner operational sync | Run sync workflow | Planner tasks are created for selected updates |
 
-![Workflow tool invocation in preview](./assets/screenshots/step-10-workflow-tool-invoked.png)
-![Agent source/freshness validation run](./assets/screenshots/step-15-agent-test-sources-and-freshness.png)
+<p align="center"><img src="./assets/screenshots/step-10-workflow-tool-invoked.png" alt="Workflow tool invocation in preview" width="1200"></p>
+<p align="center"><sub>Validation: Workflow tool invocation in preview</sub></p>
+
+<p align="center"><img src="./assets/screenshots/step-15-agent-test-sources-and-freshness.png" alt="Agent source and freshness validation run" width="1200"></p>
+<p align="center"><sub>Validation: Agent source and freshness check</sub></p>
 
 ---
 
@@ -183,7 +205,8 @@ Create a workflow that runs daily and writes normalized rows into Dataverse:
    - time-window interactivity
    - source coverage and freshness
 
-![Preview ready for validation](./assets/screenshots/step-09-preview-ready.png)
+<p align="center"><img src="./assets/screenshots/step-09-preview-ready.png" alt="Preview ready for validation" width="1200"></p>
+<p align="center"><sub>Final check: Preview ready for validation</sub></p>
 
 ---
 
