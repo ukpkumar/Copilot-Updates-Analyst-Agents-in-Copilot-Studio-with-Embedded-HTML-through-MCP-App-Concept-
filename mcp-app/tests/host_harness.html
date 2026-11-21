@@ -9,9 +9,10 @@
 const log = m => { document.getElementById('log').textContent += m + "\n"; };
 const f = document.getElementById('f');
 let payload;
+const payloadUrl = new URLSearchParams(location.search).get('payload') || '/tests/sample_payload.json';
 Promise.all([fetch('/widget/dashboard.html').then(r=>r.text()), fetch('/mcp',{method:'POST',headers:{'Content-Type':'application/json'},
   body: JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/call',params:{name:'render_dashboard',arguments:null}})}).catch(()=>null),
-  fetch('/tests/sample_payload.json').then(r=>r.json())]).then(([html,_,sample]) => { payload = sample; f.srcdoc = html; });
+  fetch(payloadUrl).then(r=>r.json())]).then(([html,_,sample]) => { payload = sample; f.srcdoc = html; });
 window.addEventListener('message', e => {
   const m = e.data; if (!m || m.jsonrpc !== '2.0') return;
   log('view -> host: ' + m.method + (m.method==='ui/notifications/size-changed' ? ' ' + JSON.stringify(m.params) : ''));

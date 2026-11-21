@@ -733,11 +733,6 @@ Show Copilot updates from the last 30 days as an interactive dashboard.
 6. Confirm the embedded dashboard appears.
 7. Test search, source/status filters, sorting, a time-window control, and a detail row.
 
-<p align="center">
-  <img src="./assets/screenshots/step-13-preview-dashboard-rendered.png" alt="Embedded MCP dashboard rendered in Copilot Studio" width="1050">
-</p>
-<p align="center"><sub>The MCP app renders inside the Copilot host after the agent supplies structured data.</sub></p>
-
 **Checkpoint:** A 30-day prompt produces an embedded dashboard and a concise textual summary.
 
 ---
@@ -804,47 +799,129 @@ This workflow creates operational Planner tasks. Dataverse remains the analytica
 
 ## 12. Lab 9: Run the end-to-end test plan
 
-Run every test before publishing.
+Validation must demonstrate a populated and interactive dashboard. A no-data response or a tool trace without rendered output is not sufficient evidence.
 
-| ID | Procedure | Expected result |
-|---|---|---|
-| T01 | Open the Azure `/healthz` URL | HTTP success and healthy service response |
-| T02 | Send an authenticated MCP `initialize` request | MCP server metadata is returned |
-| T03 | Run daily ingestion manually | Workflow succeeds |
-| T04 | Inspect newest Dataverse records | Title, source ID, source, and modified date are populated |
-| T05 | Search Dataverse for blank titles | No new blank-title records exist |
-| T06 | Ask for the last 30 days | Agent reads Dataverse and renders the dashboard |
-| T07 | Click dashboard filters | KPIs/charts/table respond consistently |
-| T08 | Open a dashboard detail row | Full item details and source link are available |
-| T09 | Ask for a custom 45-day period | Dashboard is regenerated for 45 days |
-| T10 | Run Planner sync | Matching Message Center tasks appear in Planner |
-| T11 | Start a new conversation and repeat T06 | Behavior is consistent without prior chat context |
+### 12.1 Generate a fresh validation payload
 
-### 12.1 Validate tool order
+Open PowerShell in `mcp-app` and build a 30-day payload from the configured public sources:
 
-In the Copilot Studio test panel:
+```powershell
+python .\scripts\build_mcp_messages_payload.py `
+    --days 30 `
+    --out live-validation-payload.json
+```
 
-1. Enable activity/debug details.
-2. Submit the 30-day dashboard prompt.
-3. Confirm the sequence:
-   - Dataverse list rows
-   - `render_dashboard`
-   - concise summary
+Confirm that the file contains rows:
+
+```powershell
+$payload = Get-Content .\live-validation-payload.json -Raw | ConvertFrom-Json
+$payload.title
+$payload.kpis
+$payload.table.rows.Count
+```
+
+The row count must be greater than zero.
+
+### 12.2 Run the MCP Apps host validation
+
+Start a local server:
+
+```powershell
+python -m http.server 8766 --bind 127.0.0.1
+```
+
+Open this URL:
+
+```text
+http://127.0.0.1:8766/tests/host_harness.html?payload=/live-validation-payload.json
+```
+
+This harness performs the same MCP Apps UI handshake used by a compatible Copilot host and loads the actual `widget/dashboard.html` resource with the generated payload.
+
+### 12.3 Validate the complete dashboard view
+
+Confirm that the rendered view contains:
+
+1. the requested 30-day title;
+2. 30-day time-window selection;
+3. nonzero KPI values;
+4. product, source, trend, and change-type charts;
+5. product, source, status, and change-type filters;
+6. populated update rows;
+7. source IDs, statuses, dates, descriptions, and actions.
 
 <p align="center">
-  <img src="./assets/screenshots/step-10-workflow-tool-invoked.png" alt="Agent test trace showing tool invocation" width="1050">
+  <img src="./assets/screenshots/validation-mcp-live-dashboard-overview.png" alt="Successful MCP dashboard validation with fresh 30-day Roadmap data and the Copilot Studio product filter applied" width="1200">
 </p>
-<p align="center"><sub>Use the activity trace to prove that the agent retrieves data before rendering it.</sub></p>
+<p align="center"><sub>Successful functional run: fresh 30-day Roadmap payload rendered by the real MCP dashboard widget, filtered to Copilot Studio.</sub></p>
 
-### 12.2 Acceptance criteria
+### 12.4 Validate filtering and row interaction
+
+1. Select **Last 30 days**.
+2. Set **Product** to `Copilot Studio`.
+3. Confirm the displayed-row count decreases while the source payload count remains visible.
+4. Select a table row.
+5. Confirm the details panel displays:
+   - title;
+   - rollout status;
+   - source;
+   - source or Roadmap ID;
+   - modified date;
+   - full description;
+   - **Explain rollout status**;
+   - **Create follow-up summary**.
+
+<p align="center">
+  <img src="./assets/screenshots/validation-mcp-live-dashboard-selected-details.png" alt="Selected Copilot Studio update showing source, rollout status, Roadmap ID, modified date, description, and follow-up actions" width="1200">
+</p>
+<p align="center"><sub>Interaction proof: selecting a filtered row opens the detailed update view and its follow-up actions.</sub></p>
+
+### 12.5 Validate inside Copilot Studio
+
+After the standalone functional test succeeds:
+
+1. Open **Copilot Updates Analyst** in Copilot Studio.
+2. Open **Preview** and start a new conversation.
+3. Enable debug details.
+4. Enter:
+
+```text
+Show Copilot updates from the last 30 days as an interactive dashboard.
+Filter the result to Copilot Studio and include rollout status and source links.
+```
+
+5. Confirm the execution sequence:
+   - Dataverse list rows;
+   - `render_dashboard`;
+   - embedded dashboard;
+   - concise summary.
+6. Repeat the Product filter and row-selection checks from section 12.4.
+
+### 12.6 Validation matrix
+
+| ID | Procedure | Pass condition |
+|---|---|---|
+| V01 | Open the Azure `/healthz` URL | Response contains `status: ok` |
+| V02 | Send authenticated MCP `initialize` | MCP server metadata is returned |
+| V03 | Generate the 30-day payload | Payload has a nonzero table-row count |
+| V04 | Open the MCP Apps host harness | Dashboard widget renders without an error |
+| V05 | Select Last 30 days | The 30-day chip is active |
+| V06 | Filter Product to Copilot Studio | Table row count decreases to matching records |
+| V07 | Select a row | Details show title, status, source, ID, date, and description |
+| V08 | Use a details action | The widget sends the expected follow-up action |
+| V09 | Run the Copilot Studio prompt | Dataverse retrieval is followed by `render_dashboard` |
+| V10 | Inspect the Copilot Studio result | The embedded dashboard and concise summary both appear |
+| V11 | Run Planner sync, if included | Matching Message Center tasks appear in Planner |
+
+### 12.7 Acceptance criteria
 
 The solution is ready to publish only when:
 
 - all required tools are connected;
 - the ingestion workflow is published and successful;
 - Dataverse contains valid, nonblank rows;
-- the dashboard renders in test chat;
-- dashboard interactions work;
+- a populated dashboard renders in both the host harness and Copilot Studio test chat;
+- time-window, filter, row-selection, and follow-up interactions work;
 - custom time windows work;
 - Planner sync succeeds when included;
 - Copilot Studio Review has no blocking errors.
