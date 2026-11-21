@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Skill and MCP App Relationship</title>
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("scoutTheme");
+      const theme =
+        param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --cp-bg: #f7f4ef;
+      --cp-bg-elevated: #fcfbf8;
+      --cp-surface: #ffffff;
+      --cp-surface-soft: #f5f5f5;
+      --cp-border: #dedede;
+      --cp-border-strong: #919191;
+      --cp-text: #242424;
+      --cp-text-muted: #5c5c5c;
+      --cp-text-soft: #6f6f6f;
+      --cp-accent: #b11f4b;
+      --cp-accent-hover: #9a1a41;
+      --cp-accent-soft: rgba(177, 31, 75, 0.08);
+      --cp-accent-fg: #ffffff;
+      --cp-success: #16a34a;
+      --cp-danger: #dc2626;
+      --cp-warning: #f59e0b;
+      --cp-link: #0078d4;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+      --cp-overlay: rgba(255, 255, 255, 0.8);
+      --cp-panel: rgba(255, 255, 255, 0.86);
+      --cp-panel-strong: rgba(255, 255, 255, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.55);
+      --cp-highlight: rgba(177, 31, 75, 0.12);
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --cp-bg: #3d3b3a;
+      --cp-bg-elevated: #343231;
+      --cp-surface: #292929;
+      --cp-surface-soft: #2e2e2e;
+      --cp-border: #474747;
+      --cp-border-strong: #5f5f5f;
+      --cp-text: #dedede;
+      --cp-text-muted: #919191;
+      --cp-text-soft: #b0b0b0;
+      --cp-accent: #fd8ea1;
+      --cp-accent-hover: #fb7b91;
+      --cp-accent-soft: rgba(253, 142, 161, 0.14);
+      --cp-accent-fg: #1a1a1a;
+      --cp-success: #4ade80;
+      --cp-danger: #f87171;
+      --cp-warning: #fbbf24;
+      --cp-link: #4da6ff;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+      --cp-overlay: rgba(41, 41, 41, 0.88);
+      --cp-panel: rgba(41, 41, 41, 0.72);
+      --cp-panel-strong: rgba(41, 41, 41, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.04);
+      --cp-highlight: rgba(253, 142, 161, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--cp-bg);
+      color: var(--cp-text);
+      font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    button { font: inherit; }
+    .page {
+      width: min(1380px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 44px 0 52px;
+    }
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 28px;
+      align-items: end;
+      margin-bottom: 28px;
+    }
+    .eyebrow {
+      color: var(--cp-accent);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 8px 0 8px;
+      max-width: 850px;
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      line-height: 1.04;
+      letter-spacing: -0.045em;
+    }
+    .lead {
+      margin: 0;
+      max-width: 850px;
+      color: var(--cp-text-muted);
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+    .legend {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px 12px;
+      padding: 16px;
+      background: var(--cp-surface);
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      box-shadow: 0 0 2px var(--cp-border), 0 1px 2px var(--cp-border);
+      color: var(--cp-text-muted);
+      font-size: 0.82rem;
+    }
+    .legend b { color: var(--cp-text); }
+    .dot {
+      width: 10px;
+      height: 10px;
+      margin-top: 4px;
+      border-radius: 50%;
+      background: var(--cp-accent);
+    }
+    .dot.success { background: var(--cp-success); }
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 24px;
+      align-items: stretch;
+    }
+    .scene-shell {
+      min-height: 660px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      background: var(--cp-bg-elevated);
+      box-shadow: 0 0 2px var(--cp-border), 0 1px 2px var(--cp-border);
+      perspective: 1400px;
+    }
+    .scene-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(var(--cp-border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--cp-border) 1px, transparent 1px);
+      background-size: 42px 42px;
+      opacity: 0.28;
+      transform: perspective(500px) rotateX(62deg) scale(1.5) translateY(34%);
+      transform-origin: bottom center;
+    }
+    .scene {
+      position: absolute;
+      inset: 24px;
+      transform-style: preserve-3d;
+      transition: transform 180ms ease;
+    }
+    .node {
+      position: absolute;
+      width: 218px;
+      min-height: 126px;
+      padding: 18px;
+      text-align: left;
+      cursor: pointer;
+      color: var(--cp-text);
+      background: var(--cp-surface);
+      border: 1px solid var(--cp-border-strong);
+      border-radius: 16px;
+      box-shadow: var(--cp-shadow);
+      transform-style: preserve-3d;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+    .node:hover,
+    .node:focus-visible,
+    .node.active {
+      outline: none;
+      border-color: var(--cp-accent);
+      background: var(--cp-panel-strong);
+      transform: translateZ(24px) scale(1.035);
+    }
+    .node::after {
+      content: "";
+      position: absolute;
+      inset: 8px -8px -8px 8px;
+      z-index: -1;
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      background: var(--cp-surface-soft);
+      transform: translateZ(-20px);
+    }
+    .node .step {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      margin-bottom: 12px;
+      border-radius: 50%;
+      color: var(--cp-accent-fg);
+      background: var(--cp-accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .node h2 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+    }
+    .node p {
+      margin: 0;
+      color: var(--cp-text-muted);
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+    .user { left: 3%; top: 38%; transform: rotateY(8deg); }
+    .agent { left: 28%; top: 11%; transform: rotateY(4deg) translateZ(22px); }
+    .skill { left: 28%; top: 61%; transform: rotateY(4deg) translateZ(22px); }
+    .data { right: 3%; top: 8%; transform: rotateY(-8deg); }
+    .mcp { right: 3%; top: 39%; transform: rotateY(-8deg) translateZ(34px); }
+    .html { right: 3%; top: 70%; transform: rotateY(-8deg); }
+    .mcp .step, .html .step { background: var(--cp-success); }
+    .connector {
+      position: absolute;
+      height: 3px;
+      transform-origin: left center;
+      background: var(--cp-accent);
+      box-shadow: 0 0 0 1px var(--cp-accent-soft);
+      opacity: 0.82;
+    }
+    .connector::after {
+      content: "";
+      position: absolute;
+      right: -1px;
+      top: -5px;
+      border-top: 6px solid transparent;
+      border-bottom: 6px solid transparent;
+      border-left: 10px solid var(--cp-accent);
+    }
+    .c1 { left: 20%; top: 45%; width: 150px; transform: rotate(-31deg); }
+    .c2 { left: 20%; top: 48%; width: 148px; transform: rotate(30deg); }
+    .c3 { left: 45%; top: 24%; width: 308px; transform: rotate(-1deg); }
+    .c4 { left: 45%; top: 70%; width: 305px; transform: rotate(-22deg); }
+    .c5 { left: 73%; top: 52%; width: 82px; transform: rotate(88deg); background: var(--cp-success); }
+    .c5::after { border-left-color: var(--cp-success); }
+    .c6 { left: 45%; top: 30%; width: 300px; transform: rotate(37deg); }
+    .panel {
+      display: flex;
+      flex-direction: column;
+      min-height: 660px;
+      padding: 24px;
+      background: var(--cp-surface);
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      box-shadow: 0 0 2px var(--cp-border), 0 1px 2px var(--cp-border);
+    }
+    .panel .tag {
+      align-self: flex-start;
+      padding: 6px 9px;
+      border-radius: 0.625rem;
+      color: var(--cp-accent);
+      background: var(--cp-accent-soft);
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+    .panel h2 {
+      margin: 20px 0 10px;
+      font-size: 1.55rem;
+      line-height: 1.15;
+    }
+    .panel p {
+      margin: 0 0 16px;
+      color: var(--cp-text-muted);
+      line-height: 1.55;
+    }
+    .panel ul {
+      margin: 0;
+      padding-left: 19px;
+      color: var(--cp-text-muted);
+      line-height: 1.7;
+    }
+    .contract {
+      margin-top: auto;
+      padding: 16px;
+      border: 1px solid var(--cp-border);
+      border-radius: 0.625rem;
+      background: var(--cp-surface-soft);
+    }
+    .contract strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--cp-text);
+    }
+    .contract code {
+      color: var(--cp-accent);
+      font-family: Consolas, "Courier New", Courier, monospace;
+      font-size: 0.82rem;
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .summary article {
+      padding: 20px;
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      background: var(--cp-surface);
+      box-shadow: 0 0 2px var(--cp-border), 0 1px 2px var(--cp-border);
+    }
+    .summary strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--cp-accent);
+    }
+    .summary p {
+      margin: 0;
+      color: var(--cp-text-muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    @media (max-width: 1050px) {
+      .workspace { grid-template-columns: 1fr; }
+      .panel { min-height: auto; }
+      .scene-shell { min-height: 720px; }
+      .summary { grid-template-columns: 1fr; }
+      header { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      .page { width: min(100% - 24px, 1380px); padding-top: 24px; }
+      .scene-shell { min-height: 1020px; }
+      .node { width: 82%; left: 9%; right: auto; transform: none; }
+      .user { top: 3%; }
+      .agent { top: 19%; }
+      .data { top: 35%; }
+      .skill { top: 51%; }
+      .mcp { top: 67%; }
+      .html { top: 83%; }
+      .connector { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .scene, .node { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div>
+        <div class="eyebrow">Copilot Studio architecture</div>
+        <h1>Dashboard skill decides. MCP app renders.</h1>
+        <p class="lead">The skill is the orchestration contract that tells the agent when to build a dashboard and how to shape its data. The MCP app is the runtime renderer that turns that structured payload into supported embedded HTML.</p>
+      </div>
+      <div class="legend" aria-label="Diagram legend">
+        <span class="dot"></span><span><b>Orchestration</b><br>agent decisions and data shaping</span>
+        <span class="dot success"></span><span><b>Rendering</b><br>MCP resource and embedded HTML</span>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <div class="scene-shell" id="scene-shell" aria-label="Interactive 3D architecture flow">
+        <div class="scene" id="scene">
+          <span class="connector c1"></span>
+          <span class="connector c2"></span>
+          <span class="connector c3"></span>
+          <span class="connector c4"></span>
+          <span class="connector c5"></span>
+          <span class="connector c6"></span>
+
+          <button class="node user active" data-node="user" type="button">
+            <span class="step">1</span>
+            <h2>User request</h2>
+            <p>“Show the last 30 days as an interactive dashboard.”</p>
+          </button>
+          <button class="node agent" data-node="agent" type="button">
+            <span class="step">2</span>
+            <h2>Copilot Studio agent</h2>
+            <p>Understands intent, selects tools, and coordinates the response.</p>
+          </button>
+          <button class="node data" data-node="data" type="button">
+            <span class="step">3</span>
+            <h2>Dataverse tool</h2>
+            <p>Retrieves valid update rows, dates, status, IDs, and source links.</p>
+          </button>
+          <button class="node skill" data-node="skill" type="button">
+            <span class="step">4</span>
+            <h2>Dashboard skill</h2>
+            <p>Defines period logic, filtering, KPIs, chart dimensions, and payload shape.</p>
+          </button>
+          <button class="node mcp" data-node="mcp" type="button">
+            <span class="step">5</span>
+            <h2>MCP render_dashboard</h2>
+            <p>Returns structuredContent plus the ui:// dashboard resource.</p>
+          </button>
+          <button class="node html" data-node="html" type="button">
+            <span class="step">6</span>
+            <h2>Embedded HTML output</h2>
+            <p>Copilot loads the sandboxed widget with KPIs, charts, filters, and details.</p>
+          </button>
+        </div>
+      </div>
+
+      <aside class="panel" aria-live="polite">
+        <span class="tag" id="detail-tag">Step 1 · Input</span>
+        <h2 id="detail-title">User requests a dashboard</h2>
+        <p id="detail-copy">The process starts with a natural-language request. The requested period and desired output become the agent's working context.</p>
+        <ul id="detail-list">
+          <li>Captures the number of days</li>
+          <li>Identifies dashboard intent</li>
+          <li>Preserves product or source scope</li>
+        </ul>
+        <div class="contract">
+          <strong>Key relationship</strong>
+          <code id="detail-contract">request → agent orchestration</code>
+        </div>
+      </aside>
+    </section>
+
+    <section class="summary" aria-label="Relationship summary">
+      <article>
+        <strong>Skill = behavior</strong>
+        <p>It tells the model when to render, which records to keep, how to calculate metrics, and which fields become filters.</p>
+      </article>
+      <article>
+        <strong>MCP = supported UI runtime</strong>
+        <p>It exposes the tool and HTML resource, validates the payload, and returns both the interactive output and a text fallback.</p>
+      </article>
+      <article>
+        <strong>Together = reliable embedded HTML</strong>
+        <p>The skill creates a predictable contract; MCP turns that contract into a secure, sandboxed, interactive experience.</p>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const DETAILS = {
+      user: {
+        tag: "Step 1 · Input",
+        title: "User requests a dashboard",
+        copy: "The process starts with a natural-language request. The requested period and desired output become the agent's working context.",
+        items: ["Captures the number of days", "Identifies dashboard intent", "Preserves product or source scope"],
+        contract: "request → agent orchestration"
+      },
+      agent: {
+        tag: "Step 2 · Orchestration",
+        title: "The agent coordinates the process",
+        copy: "Copilot Studio interprets the request and chooses the Dataverse retrieval tool, dashboard skill, and MCP renderer in the correct order.",
+        items: ["Resolves missing period information", "Calls only connected tools", "Keeps the final narrative concise"],
+        contract: "intent → tools → response"
+      },
+      data: {
+        tag: "Step 3 · Data",
+        title: "Dataverse supplies trusted rows",
+        copy: "The data tool retrieves normalized update records. It is the source for titles, dates, source IDs, statuses, products, and links.",
+        items: ["Excludes blank-title records", "Uses source dates for filtering", "Preserves traceability fields"],
+        contract: "Dataverse rows → filtered records"
+      },
+      skill: {
+        tag: "Step 4 · Behavior contract",
+        title: "The dashboard skill defines what to build",
+        copy: "The skill does not render HTML. It instructs the agent how to transform retrieved records into a consistent dashboard payload.",
+        items: ["Defines KPIs and chart dimensions", "Sets filterKeys and table columns", "Specifies time-window behavior"],
+        contract: "records → render_dashboard arguments"
+      },
+      mcp: {
+        tag: "Step 5 · Rendering contract",
+        title: "MCP turns payload into a UI result",
+        copy: "The MCP server validates and bounds the payload, returns structuredContent, and declares the HTML resource through ui.resourceUri.",
+        items: ["Exposes render_dashboard", "Returns ui://copilot-dashboard/dashboard.html", "Provides a Markdown fallback"],
+        contract: "structured payload → MCP tool result"
+      },
+      html: {
+        tag: "Step 6 · User experience",
+        title: "Copilot hosts the embedded HTML",
+        copy: "The Copilot host fetches the declared UI resource and renders it in a sandboxed iframe beside the agent response.",
+        items: ["Interactive KPIs and charts", "Search, sorting, and filters", "Detail rows and safe source links"],
+        contract: "MCP result → embedded dashboard"
+      }
+    };
+
+    const nodes = [...document.querySelectorAll(".node")];
+    const tag = document.getElementById("detail-tag");
+    const title = document.getElementById("detail-title");
+    const copy = document.getElementById("detail-copy");
+    const list = document.getElementById("detail-list");
+    const contract = document.getElementById("detail-contract");
+
+    function selectNode(name) {
+      const detail = DETAILS[name];
+      nodes.forEach((node) => node.classList.toggle("active", node.dataset.node === name));
+      tag.textContent = detail.tag;
+      title.textContent = detail.title;
+      copy.textContent = detail.copy;
+      list.replaceChildren(...detail.items.map((item) => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        return li;
+      }));
+      contract.textContent = detail.contract;
+    }
+
+    nodes.forEach((node) => node.addEventListener("click", () => selectNode(node.dataset.node)));
+
+    const shell = document.getElementById("scene-shell");
+    const scene = document.getElementById("scene");
+    shell.addEventListener("pointermove", (event) => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const box = shell.getBoundingClientRect();
+      const x = (event.clientX - box.left) / box.width - 0.5;
+      const y = (event.clientY - box.top) / box.height - 0.5;
+      scene.style.transform = `rotateY(${x * 4}deg) rotateX(${-y * 3}deg)`;
+    });
+    shell.addEventListener("pointerleave", () => {
+      scene.style.transform = "";
+    });
+  </script>
+</body>
+</html>

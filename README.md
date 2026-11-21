@@ -66,6 +66,35 @@ flowchart LR
 | Dashboard widget | Renders KPIs, charts, search, filters, time-window controls, and detail rows |
 | Planner sync | Converts selected Message Center changes into operational tasks |
 
+### How the dashboard skill and MCP app work together
+
+The two components are complementary:
+
+| Component | What it controls | What it does not do |
+|---|---|---|
+| `interactive-dashboard` skill | Decides when to render, selects the period, filters records, defines KPIs/charts, and shapes the tool arguments | It does not execute HTML or host a user interface |
+| `render_dashboard` MCP tool | Validates the arguments, returns `structuredContent`, declares the `ui://` resource, and supplies a text fallback | It does not retrieve Dataverse records or decide which business data to show |
+| `dashboard.html` MCP resource | Renders the supplied data as interactive, sandboxed HTML | It does not independently query Microsoft 365 or Dataverse |
+
+The runtime sequence is:
+
+1. The user requests a dashboard and provides, or is asked for, a time window.
+2. The Copilot Studio agent retrieves update rows from Dataverse.
+3. The dashboard skill instructs the agent to remove invalid rows and calculate the dashboard payload.
+4. The agent calls `render_dashboard` with KPIs, charts, table rows, filters, and notes.
+5. The MCP server returns the validated payload as `structuredContent` and points the host to `ui://copilot-dashboard/dashboard.html`.
+6. Copilot loads the HTML resource in a sandboxed iframe and displays the interactive dashboard.
+
+<p align="center">
+  <a href="./architecture/dashboard-skill-mcp-relationship.html">
+    <img src="./assets/screenshots/dashboard-skill-mcp-3d-architecture.png" alt="3D architecture showing the relationship between the dashboard skill, Dataverse, MCP tool, and embedded HTML output" width="1200">
+  </a>
+</p>
+<p align="center"><sub>Dashboard skill = behavior contract. MCP app = supported rendering runtime. Select the image to open the interactive HTML source.</sub></p>
+
+> [!TIP]
+> Download [`dashboard-skill-mcp-relationship.html`](./architecture/dashboard-skill-mcp-relationship.html) and open it in a browser for the interactive 3D view. Select any component to inspect its responsibility.
+
 ### Embedded HTML requirements
 
 Embedded HTML does not work by placing HTML or JavaScript in an agent message. Copilot displays that content as text. The supported pattern used in this lab is:
