@@ -1,5 +1,5 @@
-# Building a Copilot Updates Analyst in Copilot Studio with Embedded HTML via MCP  
-## End-to-End Lab Guide (Azure + Dataverse + Workflows + Planner Sync)
+# Copilot Updates Analyst in Copilot Studio  
+## End-to-End Lab Guide for Embedded HTML Dashboards via MCP (Azure + Dataverse + Workflows + Planner Sync)
 
 This lab shows how to build a Copilot Studio agent that ingests Microsoft Copilot update signals, stores them in Dataverse, and renders an interactive embedded HTML dashboard through an MCP app.
 
