@@ -366,9 +366,9 @@ The deployed health endpoint used for this lab returned:
 3. Select **Model Context Protocol** or **MCP server**.
 
 <p align="center">
-  <img src="./assets/screenshots/step-03-add-tool-dialog.png" alt="Add a tool dialog with MCP option" width="850">
+  <img src="./assets/screenshots/step-03-add-tool-mcp-selected.png" alt="Add a tool dialog with the MCP tab selected" width="850">
 </p>
-<p align="center"><sub>Select the MCP option from the agent's Add tool experience.</sub></p>
+<p align="center"><sub>Select the MCP tab in the agent's Add tool experience.</sub></p>
 
 ### 6.3 Enter the MCP server details
 
