@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interactive dashboard</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --color-background-primary: light-dark(#ffffff, #1f1f1f);
+    --color-background-secondary: light-dark(#f5f5f5, #2b2b2b);
+    --color-background-tertiary: light-dark(#ebebeb, #333333);
+    --color-text-primary: light-dark(#242424, #f0f0f0);
+    --color-text-secondary: light-dark(#616161, #c7c7c7);
+    --color-border-primary: light-dark(#d1d1d1, #474747);
+    --color-text-success: light-dark(#107c10, #54b054);
+    --color-text-danger: light-dark(#c50f1f, #f1707b);
+    --accent: light-dark(#0f6cbd, #479ef5);
+    --font-sans: "Segoe UI", "Segoe UI Web (West European)", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+    --border-radius-md: 8px;
+  }
+  html[data-theme="light"] { color-scheme: light; }
+  html[data-theme="dark"] { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 12px; font-family: var(--font-sans); font-size: 14px;
+         color: var(--color-text-primary); background: var(--color-background-primary); }
+  h1 { font-size: 18px; margin: 0 0 2px; font-weight: 600; }
+  .sub { color: var(--color-text-secondary); margin: 0 0 12px; font-size: 13px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
+  .spacer { flex: 1; }
+  button, input, select { font: inherit; color: inherit; }
+  .chip { border: 1px solid var(--color-border-primary); background: var(--color-background-secondary);
+          border-radius: 999px; padding: 3px 10px; cursor: pointer; font-size: 12px; }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn { border: 1px solid var(--color-border-primary); background: var(--color-background-secondary);
+         border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
+  .btn:hover, .chip:hover { filter: brightness(0.95); }
+  input[type="search"] { border: 1px solid var(--color-border-primary); background: var(--color-background-primary);
+         border-radius: 6px; padding: 4px 8px; min-width: 180px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .kpi { border: 1px solid var(--color-border-primary); border-radius: var(--border-radius-md); padding: 10px;
+         background: var(--color-background-secondary); }
+  .kpi .label { color: var(--color-text-secondary); font-size: 12px; }
+  .kpi .value { font-size: 22px; font-weight: 600; margin-top: 2px; }
+  .kpi .delta { font-size: 12px; margin-top: 2px; }
+  .up { color: var(--color-text-success); } .down { color: var(--color-text-danger); }
+  .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .card { border: 1px solid var(--color-border-primary); border-radius: var(--border-radius-md); padding: 10px; }
+  .card h2 { font-size: 13px; margin: 0 0 6px; font-weight: 600; }
+  svg text { fill: var(--color-text-secondary); font-size: 11px; }
+  .bar-rect { cursor: pointer; }
+  .bar-rect:hover { opacity: 0.8; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; color: var(--color-text-secondary); margin-top: 4px; }
+  .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--color-border-primary); border-radius: var(--border-radius-md); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--color-border-primary); vertical-align: top; }
+  th { background: var(--color-background-secondary); cursor: pointer; user-select: none; white-space: nowrap; font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--color-background-secondary); }
+  a, .link { color: var(--accent); cursor: pointer; text-decoration: underline; background: none; border: none; padding: 0; }
+  .rowact { opacity: 0.6; }
+  tbody tr:hover .rowact { opacity: 1; }
+  .meta { color: var(--color-text-secondary); font-size: 12px; margin-top: 6px; }
+  .empty { padding: 16px; color: var(--color-text-secondary); text-align: center; }
+  .notes { margin-top: 10px; font-size: 13px; color: var(--color-text-secondary); }
+  .loading { padding: 24px; text-align: center; color: var(--color-text-secondary); }
+  tr[data-row] { cursor: pointer; }
+  tr[data-row].selected { background: var(--color-background-tertiary); }
+  .details { margin-top: 8px; border: 1px solid var(--color-border-primary); border-radius: var(--border-radius-md); padding: 10px; background: var(--color-background-secondary); }
+  .details-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 6px 12px; font-size: 12px; margin-bottom: 8px; }
+  .details-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">Loading dashboard…</div></div>
+<script>
+(function () {
+  "use strict";
+  var PALETTE = ["#0f6cbd", "#c239b3", "#e3008c", "#ca5010", "#498205", "#038387", "#8764b8", "#986f0b"];
+  var TIME_WINDOWS = [7, 30, 90];
+  var state = { data: null, filters: {}, search: "", sortKey: null, sortDir: 1, host: null, displayMode: "inline", timeWindowDays: null };
+  var app = document.getElementById("app");
+  var nextId = 1, pending = {};
+  var embedded = window.parent && window.parent !== window;
+
+  /* ---------- MCP Apps bridge (JSON-RPC 2.0 over postMessage) ---------- */
+  function post(msg) { try { window.parent.postMessage(msg, "*"); } catch (e) { /* ignore */ } }
+  function request(method, params) {
+    var id = nextId++;
+    post({ jsonrpc: "2.0", id: id, method: method, params: params || {} });
+    return new Promise(function (resolve, reject) {
+      pending[id] = { resolve: resolve, reject: reject };
+      setTimeout(function () { if (pending[id]) { delete pending[id]; reject(new Error("timeout")); } }, 15000);
+    });
+  }
+  function notify(method, params) { post({ jsonrpc: "2.0", method: method, params: params || {} }); }
+
+  window.addEventListener("message", function (ev) {
+    var m = ev.data;
+    if (!m || m.jsonrpc !== "2.0") return;
+    if (m.id != null && pending[m.id] && !m.method) {
+      var p = pending[m.id]; delete pending[m.id];
+      if (m.error) p.reject(m.error); else p.resolve(m.result);
+      return;
+    }
+    switch (m.method) {
+      case "ui/notifications/tool-result": onToolResult(m.params); break;
+      case "ui/notifications/tool-input":
+        if (!state.data && m.params && m.params.arguments) setData(m.params.arguments, true); break;
+      case "ui/notifications/host-context-changed": applyHostContext(m.params || {}); break;
+      case "ui/resource-teardown": post({ jsonrpc: "2.0", id: m.id, result: {} }); break;
+      case "ping": if (m.id != null) post({ jsonrpc: "2.0", id: m.id, result: {} }); break;
+    }
+  });
+
+  function onToolResult(result) {
+    if (!result) return;
+    if (result.structuredContent) { setData(result.structuredContent, false); return; }
+    var txt = (result.content || []).filter(function (c) { return c.type === "text"; }).map(function (c) { return c.text; }).join("\n");
+    try { setData(JSON.parse(txt), false); } catch (e) { app.innerHTML = '<div class="empty">' + esc(txt || "No data returned.") + "</div>"; }
+  }
+
+  function applyHostContext(ctx) {
+    state.host = Object.assign({}, state.host || {}, ctx);
+    if (ctx.theme) document.documentElement.setAttribute("data-theme", ctx.theme);
+    var vars = ctx.styles && ctx.styles.variables;
+    if (vars) Object.keys(vars).forEach(function (k) { if (vars[k]) document.documentElement.style.setProperty(k, vars[k]); });
+    if (ctx.displayMode) state.displayMode = ctx.displayMode;
+    if (state.data) render();
+  }
+
+  function openLink(url) {
+    if (!/^https?:\/\//i.test(url || "")) return;
+    if (embedded) request("ui/open-link", { url: url }).catch(function () { window.open(url, "_blank", "noopener"); });
+    else window.open(url, "_blank", "noopener");
+  }
+  function askAbout(text) {
+    if (embedded) request("ui/message", { role: "user", content: { type: "text", text: text } }).catch(function () {});
+    else alert("Would send to chat:\n" + text);
+  }
+  function canFullscreen() {
+    var modes = state.host && state.host.availableDisplayModes;
+    return embedded && modes && modes.indexOf("fullscreen") >= 0;
+  }
+  function toggleFullscreen() {
+    var target = state.displayMode === "fullscreen" ? "inline" : "fullscreen";
+    request("ui/request-display-mode", { mode: target }).then(function (r) {
+      if (r && r.mode) { state.displayMode = r.mode; render(); }
+    }).catch(function () {});
+  }
+
+  /* ---------- data ---------- */
+  function setData(d, partial) {
+    if (!d || typeof d !== "object") return;
+    state.data = normalise(d);
+    if (!partial) {
+      state.filters = {};
+      state.search = "";
+      state.timeWindowDays = pickDefaultWindow(state.data);
+    }
+    render();
+  }
+  function normalise(d) {
+    var t = d.table || {};
+    var cols = (t.columns || []).map(function (c) { return typeof c === "string" ? { key: c, label: c } : c; });
+    var rows = (t.rows || []).map(function (r) {
+      if (Array.isArray(r)) { var o = {}; cols.forEach(function (c, i) { o[c.key] = r[i]; }); return o; }
+      return r || {};
+    });
+    if (!cols.length && rows.length) cols = Object.keys(rows[0]).map(function (k) { return { key: k, label: k }; });
+    var filterKeys = (d.filterKeys || t.filterKeys || []).filter(function (k) { return cols.some(function (c) { return c.key === k; }); });
+    return { title: d.title || "Dashboard", subtitle: d.subtitle || "", kpis: d.kpis || [], charts: d.charts || [],
+             cols: cols, rows: rows, filterKeys: filterKeys, notes: d.notes || "", generatedAt: d.generatedAt || "", dateKey: detectDateKey(cols, rows) };
+  }
+  function detectDateKey(cols, rows) {
+    for (var i = 0; i < cols.length; i++) {
+      if (cols[i].type === "date") return cols[i].key;
+    }
+    var candidates = ["modified", "updated", "published", "date", "lastModified"];
+    for (var j = 0; j < candidates.length; j++) {
+      if (cols.some(function (c) { return c.key === candidates[j]; })) return candidates[j];
+    }
+    if (rows.length) {
+      var keys = Object.keys(rows[0]);
+      for (var k = 0; k < keys.length; k++) {
+        if (/date|modified|updated|published/i.test(keys[k])) return keys[k];
+      }
+    }
+    return null;
+  }
+  function parseDateValue(v) {
+    if (!v) return null;
+    var d = new Date(v);
+    if (!isNaN(d.getTime())) return d;
+    var iso = String(v).replace(/\//g, "-");
+    d = new Date(iso);
+    if (!isNaN(d.getTime())) return d;
+    return null;
+  }
+  function withinWindow(row, D) {
+    if (!state.timeWindowDays || !D.dateKey) return true;
+    return rowWithinDays(row, D.dateKey, state.timeWindowDays);
+  }
+  function rowWithinDays(row, dateKey, days) {
+    var dv = parseDateValue(row[dateKey]);
+    if (!dv) return false;
+    var threshold = new Date();
+    threshold.setHours(0, 0, 0, 0);
+    threshold.setDate(threshold.getDate() - days + 1);
+    return dv >= threshold;
+  }
+  function pickDefaultWindow(D) {
+    if (!D || !D.dateKey || !D.rows.length) return null;
+    for (var i = 0; i < TIME_WINDOWS.length; i++) {
+      var days = TIME_WINDOWS[i];
+      var hasRows = D.rows.some(function (r) { return rowWithinDays(r, D.dateKey, days); });
+      if (hasRows) return days;
+    }
+    return null;
+  }
+  function filteredRows() {
+    var D = state.data, q = state.search.trim().toLowerCase();
+    var rows = D.rows.filter(function (r) {
+      if (!withinWindow(r, D)) return false;
+      for (var k in state.filters) { if (state.filters[k] && String(r[k]) !== state.filters[k]) return false; }
+      if (!q) return true;
+      return D.cols.some(function (c) { var v = r[c.key]; return v != null && String(v).toLowerCase().indexOf(q) >= 0; });
+    });
+    if (state.sortKey) {
+      var key = state.sortKey, dir = state.sortDir;
+      rows = rows.slice().sort(function (a, b) {
+        var x = a[key], y = b[key];
+        var nx = parseFloat(x), ny = parseFloat(y);
+        if (!isNaN(nx) && !isNaN(ny) && String(nx) === String(x).trim() && String(ny) === String(y).trim()) return (nx - ny) * dir;
+        return String(x == null ? "" : x).localeCompare(String(y == null ? "" : y)) * dir;
+      });
+    }
+    return rows;
+  }
+
+  /* ---------- rendering ---------- */
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function render() {
+    var D = state.data; if (!D) return;
+    var h = [];
+    h.push('<div class="bar"><div><h1>' + esc(D.title) + "</h1>" + (D.subtitle ? '<p class="sub">' + esc(D.subtitle) + "</p>" : "") + '</div><div class="spacer"></div>');
+    if (canFullscreen()) h.push('<button class="btn" data-act="fs">' + (state.displayMode === "fullscreen" ? "Exit full screen" : "Full screen") + "</button>");
+    h.push("</div>");
+    if (D.dateKey) {
+      h.push('<div class="bar"><strong>Time window:</strong>');
+      TIME_WINDOWS.forEach(function (days) {
+        h.push('<button class="chip" data-window="' + days + '" aria-pressed="' + (state.timeWindowDays === days ? "true" : "false") + '">Last ' + days + " days</button>");
+      });
+      h.push('<button class="chip" data-window="all" aria-pressed="' + (state.timeWindowDays == null ? "true" : "false") + '">All</button>');
+      h.push("</div>");
+    }
+    if (D.kpis.length) {
+      h.push('<div class="kpis">');
+      D.kpis.forEach(function (k) {
+        var cls = k.trend === "up" ? "up" : k.trend === "down" ? "down" : "";
+        h.push('<div class="kpi"><div class="label">' + esc(k.label) + '</div><div class="value">' + esc(k.value) + "</div>" +
+               (k.delta ? '<div class="delta ' + cls + '">' + (k.trend === "up" ? "▲ " : k.trend === "down" ? "▼ " : "") + esc(k.delta) + "</div>" : "") + "</div>");
+      });
+      h.push("</div>");
+    }
+    if (D.charts.length) {
+      h.push('<div class="charts">');
+      D.charts.forEach(function (c, i) { h.push('<div class="card"><h2>' + esc(c.title || "") + "</h2>" + chart(c, i) + "</div>"); });
+      h.push("</div>");
+    }
+    if (D.cols.length) {
+      h.push('<div class="bar">');
+      D.filterKeys.forEach(function (k) {
+        var col = D.cols.filter(function (c) { return c.key === k; })[0];
+        var vals = uniq(D.rows.map(function (r) { return r[k]; }));
+        h.push('<select data-filter="' + esc(k) + '" aria-label="Filter by ' + esc(col.label) + '"><option value="">All ' + esc(col.label) + "</option>");
+        vals.forEach(function (v) { h.push('<option value="' + esc(v) + '"' + (state.filters[k] === String(v) ? " selected" : "") + ">" + esc(v) + "</option>"); });
+        h.push("</select>");
+      });
+      h.push('<input type="search" placeholder="Search…" aria-label="Search rows" value="' + esc(state.search) + '" data-act="search" />');
+      if (Object.keys(state.filters).some(function (k) { return state.filters[k]; }) || state.search) h.push('<button class="btn" data-act="clear">Clear</button>');
+      h.push('<div class="spacer"></div></div>');
+      var rows = filteredRows();
+      h.push('<div class="tablewrap"><table><thead><tr>');
+      D.cols.forEach(function (c) {
+        var arrow = state.sortKey === c.key ? (state.sortDir > 0 ? " ▲" : " ▼") : "";
+        h.push('<th data-sort="' + esc(c.key) + '" scope="col">' + esc(c.label || c.key) + arrow + "</th>");
+      });
+      h.push('<th scope="col"></th></tr></thead><tbody>');
+      if (!rows.length) h.push('<tr><td class="empty" colspan="' + (D.cols.length + 1) + '">No rows match these filters.</td></tr>');
+      rows.forEach(function (r, ri) {
+        h.push('<tr data-row="' + ri + '"' + (state.selectedRowIndex === ri ? ' class="selected"' : "") + ">");
+        D.cols.forEach(function (c) {
+          var v = r[c.key];
+          if (c.type === "link" && v) h.push('<td><button class="link" data-url="' + esc(v) + '">Open</button></td>');
+          else h.push("<td>" + esc(v) + "</td>");
+        });
+        h.push('<td><button class="link rowact" data-ask="' + ri + '">Ask</button></td></tr>');
+      });
+      h.push("</tbody></table></div>");
+      if (rows.length && state.selectedRowIndex != null && rows[state.selectedRowIndex]) {
+        var sel = rows[state.selectedRowIndex];
+        var statusText = sel.status || "Unknown";
+        var roadmapId = sel.roadmapId || sel.sourceId || "";
+        h.push('<div class="details"><div class="details-title">Selected message details</div>');
+        h.push('<div class="details-grid">');
+        h.push("<div><strong>Title:</strong> " + esc(sel.title || "") + "</div>");
+        h.push("<div><strong>Status:</strong> " + esc(statusText) + "</div>");
+        h.push("<div><strong>Source:</strong> " + esc(sel.source || "") + "</div>");
+        h.push("<div><strong>ID:</strong> " + esc(roadmapId) + "</div>");
+        h.push("<div><strong>Modified:</strong> " + esc(sel.modified || "") + "</div>");
+        h.push("</div>");
+        if (sel.description) h.push("<div>" + esc(sel.description) + "</div>");
+        h.push('<div class="details-actions">');
+        if (sel.link) h.push('<button class="btn" data-act="detail-open" data-url="' + esc(sel.link) + '">Open source</button>');
+        h.push('<button class="btn" data-act="detail-status">Explain rollout status</button>');
+        h.push('<button class="btn" data-act="detail-followup">Create follow-up summary</button>');
+        h.push("</div></div>");
+      }
+      var latest = rows.reduce(function (acc, r) {
+        var v = parseDateValue(r[D.dateKey]);
+        if (!v) return acc;
+        return !acc || v > acc ? v : acc;
+      }, null);
+      var latestText = latest ? (" · Latest source change " + latest.toISOString().slice(0, 10)) : "";
+      h.push('<div class="meta">Showing ' + rows.length + " of " + D.rows.length + " rows" + latestText + (D.generatedAt ? " · Data as of " + esc(D.generatedAt) : "") + "</div>");
+      state._rows = rows;
+    }
+    if (D.notes) h.push('<div class="notes">' + esc(D.notes) + "</div>");
+    app.innerHTML = h.join("");
+    bind();
+  }
+  function uniq(a) { var s = {}, out = []; a.forEach(function (v) { if (v == null || v === "") return; var k = String(v); if (!s[k]) { s[k] = 1; out.push(k); } }); return out.sort(); }
+
+  function chart(c, idx) {
+    var labels = c.labels || [], series = c.series || [];
+    if (!labels.length || !series.length) return '<div class="empty">No data</div>';
+    if (c.type === "donut" || c.type === "pie") return donut(c);
+    var W = 320, H = 170, L = 30, B = 34, T = 8, R = 6;
+    var max = 0; series.forEach(function (s) { (s.values || []).forEach(function (v) { if (+v > max) max = +v; }); });
+    if (max <= 0) max = 1;
+    var pw = W - L - R, ph = H - T - B, out = ['<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="' + esc(c.title || "chart") + '">'];
+    for (var g = 0; g <= 4; g++) { var gy = T + ph - ph * g / 4; out.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + gy + '" y2="' + gy + '" stroke="currentColor" stroke-opacity="0.12"/><text x="' + (L - 4) + '" y="' + (gy + 3) + '" text-anchor="end">' + fmt(max * g / 4) + "</text>"); }
+    var step = pw / labels.length;
+    if (c.type === "line") {
+      series.forEach(function (s, si) {
+        var pts = (s.values || []).map(function (v, i) { return (L + step * i + step / 2) + "," + (T + ph - ph * (+v || 0) / max); });
+        out.push('<polyline fill="none" stroke="' + PALETTE[si % 8] + '" stroke-width="2" points="' + pts.join(" ") + '"/>');
+        (s.values || []).forEach(function (v, i) { out.push('<circle cx="' + (L + step * i + step / 2) + '" cy="' + (T + ph - ph * (+v || 0) / max) + '" r="3" fill="' + PALETTE[si % 8] + '"><title>' + esc(labels[i]) + ": " + esc(v) + "</title></circle>"); });
+      });
+    } else {
+      var bw = Math.max(2, (step - 6) / series.length);
+      series.forEach(function (s, si) {
+        (s.values || []).forEach(function (v, i) {
+          var bh = ph * (+v || 0) / max, x = L + step * i + 3 + bw * si, y = T + ph - bh;
+          out.push('<rect class="bar-rect" data-chart="' + idx + '" data-label="' + esc(labels[i]) + '" x="' + x + '" y="' + y + '" width="' + bw + '" height="' + bh + '" rx="2" fill="' + PALETTE[si % 8] + '"><title>' + esc(labels[i]) + " · " + esc(s.name || "") + ": " + esc(v) + "</title></rect>");
+        });
+      });
+    }
+    labels.forEach(function (lb, i) { var t = String(lb); if (t.length > 10) t = t.slice(0, 9) + "…"; out.push('<text x="' + (L + step * i + step / 2) + '" y="' + (H - B + 14) + '" text-anchor="middle">' + esc(t) + "</text>"); });
+    out.push("</svg>");
+    if (series.length > 1) out.push(legend(series.map(function (s) { return s.name; })));
+    return out.join("");
+  }
+  function donut(c) {
+    var vals = (c.series[0].values || []).map(function (v) { return +v || 0; });
+    var total = vals.reduce(function (a, b) { return a + b; }, 0) || 1, a0 = -Math.PI / 2, out = ['<svg viewBox="0 0 200 160" width="100%" role="img" aria-label="' + esc(c.title || "chart") + '">'];
+    vals.forEach(function (v, i) {
+      var a1 = a0 + 2 * Math.PI * v / total, large = a1 - a0 > Math.PI ? 1 : 0;
+      var x0 = 100 + 60 * Math.cos(a0), y0 = 80 + 60 * Math.sin(a0), x1 = 100 + 60 * Math.cos(a1), y1 = 80 + 60 * Math.sin(a1);
+      if (v >= total) out.push('<circle cx="100" cy="80" r="60" fill="' + PALETTE[i % 8] + '"/>');
+      else if (v > 0) out.push('<path d="M100,80 L' + x0 + "," + y0 + " A60,60 0 " + large + ",1 " + x1 + "," + y1 + ' Z" fill="' + PALETTE[i % 8] + '"><title>' + esc(c.labels[i]) + ": " + esc(v) + "</title></path>");
+      a0 = a1;
+    });
+    out.push('<circle cx="100" cy="80" r="34" fill="var(--color-background-primary)"/><text x="100" y="84" text-anchor="middle" style="font-size:14px;font-weight:600;fill:var(--color-text-primary)">' + fmt(total) + "</text></svg>");
+    out.push(legend(c.labels));
+    return out.join("");
+  }
+  function legend(names) { return '<div class="legend">' + names.map(function (n, i) { return '<span><span class="sw" style="background:' + PALETTE[i % 8] + '"></span>' + esc(n) + "</span>"; }).join("") + "</div>"; }
+  function fmt(n) { n = +n; return Math.abs(n) >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, "") + "k" : (Math.round(n * 10) / 10).toString(); }
+
+  function bind() {
+    app.querySelectorAll("select[data-filter]").forEach(function (el) {
+      el.addEventListener("change", function () { state.filters[el.getAttribute("data-filter")] = el.value; render(); });
+    });
+    app.querySelectorAll("[data-window]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var raw = b.getAttribute("data-window");
+        state.timeWindowDays = raw === "all" ? null : +raw;
+        render();
+      });
+    });
+    var s = app.querySelector('input[data-act="search"]');
+    if (s) s.addEventListener("input", function () {
+      state.search = s.value; var pos = s.selectionStart; render();
+      var n = app.querySelector('input[data-act="search"]'); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} }
+    });
+    app.querySelectorAll("th[data-sort]").forEach(function (th) {
+      th.addEventListener("click", function () { var k = th.getAttribute("data-sort"); if (state.sortKey === k) state.sortDir = -state.sortDir; else { state.sortKey = k; state.sortDir = 1; } render(); });
+    });
+    app.querySelectorAll("[data-url]").forEach(function (b) {
+      b.addEventListener("click", function (e) {
+        e.stopPropagation();
+        openLink(b.getAttribute("data-url"));
+      });
+    });
+    app.querySelectorAll("[data-ask]").forEach(function (b) {
+      b.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var r = state._rows[+b.getAttribute("data-ask")], D = state.data;
+        var desc = D.cols.filter(function (c) { return c.type !== "link"; }).map(function (c) { return (c.label || c.key) + ": " + (r[c.key] == null ? "" : r[c.key]); }).join("; ");
+        askAbout("Tell me more about this item from the " + D.title + " — " + desc);
+      });
+    });
+    app.querySelectorAll("tr[data-row]").forEach(function (tr) {
+      tr.addEventListener("click", function () {
+        var idx = +tr.getAttribute("data-row");
+        state.selectedRowIndex = state.selectedRowIndex === idx ? null : idx;
+        render();
+      });
+    });
+    var detailStatus = app.querySelector('[data-act="detail-status"]');
+    if (detailStatus) detailStatus.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var r = state._rows[state.selectedRowIndex];
+      if (!r) return;
+      askAbout("For item '" + (r.title || "") + "', explain whether status '" + (r.status || "Unknown") + "' means in development, rolling out, or generally available.");
+    });
+    var detailFollowup = app.querySelector('[data-act="detail-followup"]');
+    if (detailFollowup) detailFollowup.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var r = state._rows[state.selectedRowIndex];
+      if (!r) return;
+      askAbout("Create a follow-up summary for this update using title, description, ID, status, and source: " + (r.title || ""));
+    });
+    var detailOpen = app.querySelector('[data-act="detail-open"]');
+    if (detailOpen) detailOpen.addEventListener("click", function (e) {
+      e.stopPropagation();
+      openLink(detailOpen.getAttribute("data-url"));
+    });
+    app.querySelectorAll(".bar-rect").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var D = state.data, label = b.getAttribute("data-label");
+        var key = D.filterKeys.filter(function (k) { return D.rows.some(function (r) { return String(r[k]) === label; }); })[0];
+        if (key) { state.filters[key] = state.filters[key] === label ? "" : label; render(); }
+      });
+    });
+    var fs = app.querySelector('[data-act="fs"]'); if (fs) fs.addEventListener("click", toggleFullscreen);
+    var cl = app.querySelector('[data-act="clear"]'); if (cl) cl.addEventListener("click", function () { state.filters = {}; state.search = ""; render(); });
+  }
+
+  /* ---------- size reporting ---------- */
+  var lastH = 0;
+  function reportSize() {
+    var h = Math.ceil(document.documentElement.scrollHeight), w = Math.ceil(document.documentElement.scrollWidth);
+    if (embedded && h !== lastH) { lastH = h; notify("ui/notifications/size-changed", { width: w, height: h }); }
+  }
+  if (window.ResizeObserver) new ResizeObserver(reportSize).observe(document.body);
+
+  /* ---------- start ---------- */
+  if (embedded) {
+    request("ui/initialize", {
+      protocolVersion: "2026-01-26",
+      appInfo: { name: "copilot-dashboard", version: "1.0.0" },
+      clientInfo: { name: "copilot-dashboard", version: "1.0.0" },
+      appCapabilities: { availableDisplayModes: ["inline", "fullscreen"] },
+      capabilities: {}
+    }).then(function (res) {
+      if (res && res.hostContext) applyHostContext(res.hostContext);
+      notify("ui/notifications/initialized", {});
+    }).catch(function () { notify("ui/notifications/initialized", {}); });
+    // OpenAI Apps SDK compatibility (ChatGPT): data is exposed on window.openai
+    var tries = 0;
+    (function pollOpenAI() {
+      if (state.data) return;
+      if (window.openai && window.openai.toolOutput) { setData(window.openai.toolOutput, false); return; }
+      if (++tries < 40) setTimeout(pollOpenAI, 250);
+    })();
+  } else {
+    // Standalone preview (opened directly in a browser)
+    setData(window.__SAMPLE__ || { title: "Preview", subtitle: "Open this view through the agent to see live data.", table: { columns: [], rows: [] } }, false);
+  }
+})();
+</script>
+</body>
+</html>

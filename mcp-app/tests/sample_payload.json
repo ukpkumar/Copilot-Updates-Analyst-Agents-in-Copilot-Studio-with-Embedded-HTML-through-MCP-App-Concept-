@@ -1,0 +1,38 @@
+{
+  "title": "Copilot updates - last 7 days",
+  "subtitle": "Microsoft 365 Roadmap and Message Center items (illustrative sample data)",
+  "generatedAt": "2026-11-21",
+  "kpis": [
+    {"label": "Total updates", "value": 14, "delta": "+5 vs previous week", "trend": "up"},
+    {"label": "Copilot Studio", "value": 6},
+    {"label": "Action required", "value": 3, "delta": "-1 vs previous week", "trend": "down"},
+    {"label": "Retiring features", "value": 1}
+  ],
+  "charts": [
+    {"type": "bar", "title": "Updates by product", "labels": ["Copilot", "Copilot Studio", "Cowork", "Teams", "SharePoint"],
+     "series": [{"name": "Updates", "values": [4, 6, 2, 1, 1]}]},
+    {"type": "donut", "title": "By change type", "labels": ["New feature", "Update", "Retirement"],
+     "series": [{"name": "Count", "values": [8, 5, 1]}]},
+    {"type": "line", "title": "Updates per week", "labels": ["Oct 31", "Nov 7", "Nov 14", "Nov 21"],
+     "series": [{"name": "Roadmap", "values": [5, 7, 6, 9]}, {"name": "Message Center", "values": [3, 4, 3, 5]}]}
+  ],
+  "table": {
+    "columns": [
+      {"key": "title", "label": "Title"},
+      {"key": "product", "label": "Product"},
+      {"key": "source", "label": "Source"},
+      {"key": "changeType", "label": "Change type"},
+      {"key": "modified", "label": "Modified", "type": "date"},
+      {"key": "link", "label": "Link", "type": "link"}
+    ],
+    "rows": [
+      {"title": "MCP apps render in agent chat", "product": "Copilot Studio", "source": "Roadmap", "changeType": "New feature", "modified": "2026-11-20", "link": "https://learn.microsoft.com/microsoft-copilot-studio/agents-experience/mcp-apps"},
+      {"title": "Agent evaluation sets export", "product": "Copilot Studio", "source": "Message Center", "changeType": "Update", "modified": "2026-11-19", "link": "https://learn.microsoft.com/microsoft-copilot-studio/"},
+      {"title": "Cowork scheduled prompts", "product": "Cowork", "source": "Roadmap", "changeType": "New feature", "modified": "2026-11-18", "link": "https://learn.microsoft.com/copilot/cowork/"},
+      {"title": "Legacy plugin manifest retirement", "product": "Copilot", "source": "Message Center", "changeType": "Retirement", "modified": "2026-11-17", "link": "https://learn.microsoft.com/microsoft-365-copilot/extensibility/"},
+      {"title": "Teams meeting recap in Copilot Chat", "product": "Teams", "source": "Roadmap", "changeType": "Update", "modified": "2026-11-16", "link": "javascript:alert(1)"}
+    ]
+  },
+  "filterKeys": ["product", "source", "changeType"],
+  "notes": "Sample data for preview and testing only."
+}
