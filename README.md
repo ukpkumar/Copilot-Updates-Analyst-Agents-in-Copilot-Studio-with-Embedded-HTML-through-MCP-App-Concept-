@@ -338,6 +338,13 @@ Invoke-RestMethod `
     -Body $body
 ```
 
+The deployed health endpoint used for this lab returned:
+
+<p align="center">
+  <img src="./assets/screenshots/mcp-health-verification.png" alt="PowerShell command and successful Azure MCP health response" width="1050">
+</p>
+<p align="center"><sub>Live Azure verification: the Container App reports status <code>ok</code> for MCP server version 1.0.0.</sub></p>
+
 **Checkpoint:** The health endpoint succeeds, and the authenticated MCP initialize request returns server metadata.
 
 ---
