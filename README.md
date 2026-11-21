@@ -338,11 +338,6 @@ Invoke-RestMethod `
     -Body $body
 ```
 
-<p align="center">
-  <img src="./assets/screenshots/step-02-healthz-endpoint.png" alt="Successful MCP health endpoint" width="900">
-</p>
-<p align="center"><sub>The Azure health endpoint confirms that the container is running.</sub></p>
-
 **Checkpoint:** The health endpoint succeeds, and the authenticated MCP initialize request returns server metadata.
 
 ---
