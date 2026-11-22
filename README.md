@@ -274,7 +274,36 @@ az provider register --namespace Microsoft.App
 az provider register --namespace Microsoft.OperationalInsights
 ```
 
-### 5.3 Define deployment values
+### 5.3 Understand and generate the MCP API key
+
+Azure does not issue this key automatically. Each customer generates a private random value and uses that same value in two places:
+
+| Location | Configuration |
+|---|---|
+| Azure Container App | Environment variable `MCP_API_KEY` |
+| Copilot Studio MCP connection | API-key header named `x-api-key` |
+
+For every POST to `/mcp`, the server compares the incoming `x-api-key` value with `MCP_API_KEY`. A missing or different value returns HTTP `401 Unauthorized`.
+
+Generate a cryptographically random 256-bit key in PowerShell:
+
+```powershell
+$keyBytes = New-Object byte[] 32
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($keyBytes)
+$rng.Dispose()
+
+$ApiKey = -join ($keyBytes | ForEach-Object { $_.ToString("x2") })
+```
+
+`$ApiKey` now contains a 64-character hexadecimal secret. Keep this PowerShell session open until deployment and Copilot Studio connection setup are complete.
+
+> [!IMPORTANT]
+> Do not place the key in the README, source code, Git history, chat messages, logs, or screenshots. Store the final value in an approved password manager or Azure Key Vault. Every customer should generate a different key.
+
+The `/healthz` endpoint is intentionally unauthenticated for service-health monitoring. Authentication is enforced on `/mcp`.
+
+### 5.4 Define deployment values
 
 Choose globally unique and tenant-appropriate names:
 
@@ -282,17 +311,19 @@ Choose globally unique and tenant-appropriate names:
 $ResourceGroup = "rg-copilot-dashboard-mcp"
 $Location = "eastus"
 $AppName = "copilot-dashboard-mcp"
-
-$keyBytes = New-Object byte[] 32
-$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
-$rng.GetBytes($keyBytes)
-$rng.Dispose()
-$ApiKey = -join ($keyBytes | ForEach-Object { $_.ToString("x2") })
 ```
 
-Do not print, capture, or commit `$ApiKey`.
+Confirm that `$ApiKey` exists without displaying its value:
 
-### 5.4 Run the deployment script
+```powershell
+if ([string]::IsNullOrWhiteSpace($ApiKey)) {
+    throw "Generate the MCP API key before deployment."
+}
+
+"API key is present; length: $($ApiKey.Length)"
+```
+
+### 5.5 Run the deployment script
 
 From the repository root:
 
@@ -315,7 +346,7 @@ The script:
 5. sets `MCP_API_KEY`;
 6. prints the MCP and health URLs.
 
-### 5.5 Capture the deployed URLs
+### 5.6 Capture the deployed URLs
 
 ```powershell
 $Fqdn = az containerapp show `
@@ -331,7 +362,7 @@ $McpUrl
 $HealthUrl
 ```
 
-### 5.6 Verify the Azure deployment
+### 5.7 Verify the Azure deployment
 
 ```powershell
 Invoke-RestMethod -Uri $HealthUrl
