@@ -1,6 +1,6 @@
-# Build a Copilot Updates Analyst with Copilot Studio, Dataverse, and an MCP HTML Dashboard
+# Build an MCP App-Based Copilot Updates Dashboard with Copilot Studio and Dataverse
 
-> **End-to-end lab guide:** deploy an MCP app to Azure, create a Dataverse update store, automate Microsoft 365 Roadmap ingestion, configure a Copilot Studio agent and dashboard skill, test the complete solution, and publish the agent.
+> **End-to-end lab guide:** deploy an MCP app-based interactive HTML dashboard to Azure, create a Dataverse update store, automate Microsoft 365 Roadmap ingestion, configure a Copilot Studio agent and dashboard skill, test the complete solution, and publish the agent.
 
 ## Contents
 
